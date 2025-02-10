@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  frontend:
+    build: apps/frontend
+    ports: ["3000:3000"]
+    depends_on: [backend, surrealdb]
+
+  backend:
+    build: apps/backend
+    ports: ["8000:8000"]
+    environment:
+      SURREAL_URL: "http://surrealdb:8000"
+    depends_on: [surrealdb]
+
+  surrealdb:
+    image: surrealdb/surrealdb:latest-alpine
+    ports: ["8001:8000"]
+    command:
+      ["start", "--log", "trace", "--auth", "--user", "root", "--pass", "root"]
+    volumes:
+      - surreal_data:/var/lib/surrealdb
+
+volumes:
+  surreal_data:
