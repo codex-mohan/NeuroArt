@@ -1,4 +1,8 @@
 fastapi
 uvicorn
-surrealdb
-pydantic
+supabase
+sentry-sdk
+passlib[bcrypt]
+python-jose[cryptography]
+python-dotenv
+cloudinary
