@@ -11,7 +11,7 @@ export const NavigationBar = () => {
         {/* Load svg logo from assets */}
         <Image src={logo} alt="logo" width={40} height={40} />
         <h1 className="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 z-10">
-          NeuralArt
+          NeuroArt
         </h1>
       </div>
 

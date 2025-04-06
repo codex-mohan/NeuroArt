@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useStore } from "../store";
 import {
   Type,
@@ -9,6 +9,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+// Resolutions and HighRes Models
 const resolutions = {
   "1:1": [{ label: "1024x1024", width: 1024, height: 1024 }],
   "4:3": [
@@ -27,7 +28,13 @@ const resolutions = {
   "9:16": [{ label: "640x1536", width: 640, height: 1536 }],
 };
 
-// Real SVG icons for different aspect orientations
+const highResModels = [
+  { name: "Foolhardy Remacri", model: "4x_foolhardy_Remacri.pth" },
+  { name: "RealESRGAN", model: "realesrgan.pth" },
+  { name: "AuraSRV2", model: "aurasrv2.pth" },
+];
+
+// Aspect Ratio Icons
 const LandscapeIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +54,6 @@ const LandscapeIcon = () => (
     />
   </svg>
 );
-
 const PortraitIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +73,6 @@ const PortraitIcon = () => (
     />
   </svg>
 );
-
 const SquareIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -87,11 +92,15 @@ const SquareIcon = () => (
     />
   </svg>
 );
-
 const getAspectIcon = (width: number, height: number) => {
   if (width === height) return <SquareIcon />;
   return width > height ? <LandscapeIcon /> : <PortraitIcon />;
 };
+
+// Crude Spinner Component
+const Spinner = () => (
+  <div className="w-10 h-10 border-4 border-t-transparent border-white rounded-full animate-spin" />
+);
 
 export const SettingsPanel: React.FC = () => {
   const {
@@ -109,6 +118,14 @@ export const SettingsPanel: React.FC = () => {
     setDenoisingStrength,
     highResFix,
     setHighResFix,
+    highResDenoisingStrength,
+    setHighResDenoisingStrength,
+    highResModel,
+    setHighResModel,
+    highResSteps,
+    setHighResSteps,
+    highResScale,
+    setHighResScale,
     enhancePrompts,
     setEnhancePrompts,
   } = useStore();
@@ -118,19 +135,134 @@ export const SettingsPanel: React.FC = () => {
   const [selectedResolution, setSelectedResolution] = useState("1024x1024");
   const [isResolutionOpen, setIsResolutionOpen] = useState(true);
 
+  // Generation & progress state
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationId, setGenerationId] = useState<string | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [estimatedTime, setEstimatedTime] = useState<number>(150);
+  const [completedImages, setCompletedImages] = useState<string[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (workflowType === "text2img") {
+      setDenoisingStrength(1.0);
+    } else if (workflowType === "img2img") {
+      setDenoisingStrength(0.7);
+    } else if (workflowType === "upscaling") {
+      setDenoisingStrength(0.0);
+    }
+  }, [workflowType]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setUploadedImage(e.target.files[0]);
     }
   };
 
+  const handleSubmit = async () => {
+    setIsGenerating(true);
+    setLogs([]);
+    setCompletedImages([]);
+    setEstimatedTime(150);
+
+    const resolutionValue = Object.values(resolutions)
+      .flat()
+      .find((res) => res.label === selectedResolution);
+
+    try {
+      // Ensure steps and highResSteps are within valid bounds (<100)
+      const validSteps = steps >= 100 ? 99 : steps;
+      const validHighResSteps =
+        highResFix && highResSteps >= 100 ? 99 : highResSteps;
+
+      console.log("highres model: ", highResModel, "highres fix? ", highResFix);
+
+      // Construct payload according to the Pydantic ImageGenerationRequest model
+      const payload = {
+        model: "Flux/flux1-dev-fp8.safetensors",
+        prompt: positivePrompt,
+        init_image: uploadedImage ? [URL.createObjectURL(uploadedImage)] : null,
+        negative_prompt: negativePrompt,
+        should_enhance_prompts: enhancePrompts,
+        generation_type: workflowType, // "text2img" or "img2img"
+        hr_model: "4x_foolhardy_Remacri.pth",
+        hr_steps: highResFix ? validHighResSteps : 0,
+        hr_denoising_strength: highResFix ? highResDenoisingStrength : 0.0,
+        hr_scale: highResFix ? highResScale : 1.0,
+        sampler: "Euler",
+        steps: validSteps,
+        denoising_strength: denoisingStrength,
+        height: resolutionValue ? resolutionValue.height : 1024,
+        width: resolutionValue ? resolutionValue.width : 1024,
+        seed: Math.floor(Math.random() * (4294967295 - 1)) + 1,
+        cfg_scale: cfgScale,
+        pag_scale: 1.0,
+      };
+
+      console.log("request payload: ", payload);
+
+      const genResponse = await fetch("http://localhost:3636/queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!genResponse.ok) {
+        throw new Error(`Generation failed: ${genResponse.statusText}`);
+      }
+
+      const genData = await genResponse.json();
+      const id = genData.id;
+      setGenerationId(id);
+
+      timerRef.current = setInterval(() => {
+        setEstimatedTime((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+
+      const eventSource = new EventSource(
+        `http://localhost:3636/status-stream/${id}`
+      );
+      eventSource.onmessage = (event) => {
+        try {
+          const parsed = JSON.parse(event.data);
+          if (parsed.status === "completed" && parsed.images) {
+            setCompletedImages(parsed.images);
+            setLogs((prev) => [
+              ...prev,
+              "✅ Generation completed successfully!",
+            ]);
+            eventSource.close();
+            if (timerRef.current) clearInterval(timerRef.current);
+            setIsGenerating(false);
+          }
+        } catch {
+          setLogs((prev) => [...prev, event.data]);
+        }
+      };
+
+      eventSource.onerror = () => {
+        setLogs((prev) => [...prev, "❌ Error in status stream."]);
+        eventSource.close();
+        if (timerRef.current) clearInterval(timerRef.current);
+        setIsGenerating(false);
+      };
+    } catch (error: any) {
+      setLogs((prev) => [...prev, `❌ ${error.message}`]);
+      setIsGenerating(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
   return (
     <div className="lg:col-span-1 bg-gray-900/70 backdrop-blur-md p-6 rounded-xl border border-gray-800 shadow-lg">
       <h2 className="text-2xl font-bold mb-6 text-white">
         Generation Settings
       </h2>
-
-      {/* Workflow Type */}
       <div className="mb-6">
         <label className="block text-sm font-medium mb-2 text-gray-300">
           Workflow Type
@@ -156,8 +288,6 @@ export const SettingsPanel: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {/* Resolution Selector (Collapsible) */}
       {(workflowType === "text2img" || workflowType === "img2img") && (
         <div className="mb-6">
           <div className="flex items-center justify-between">
@@ -173,7 +303,7 @@ export const SettingsPanel: React.FC = () => {
             </button>
           </div>
           {isResolutionOpen && (
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
               {Object.entries(resolutions).map(([aspect, resList]) => (
                 <div key={aspect}>
                   <p className="text-gray-400 text-xs font-semibold mb-1">
@@ -201,8 +331,6 @@ export const SettingsPanel: React.FC = () => {
           )}
         </div>
       )}
-
-      {/* Prompts */}
       {(workflowType === "text2img" || workflowType === "img2img") && (
         <>
           <div>
@@ -217,7 +345,6 @@ export const SettingsPanel: React.FC = () => {
               onChange={(e) => setPositivePrompt(e.target.value)}
             />
           </div>
-
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-300">
               Negative Prompt
@@ -232,8 +359,6 @@ export const SettingsPanel: React.FC = () => {
           </div>
         </>
       )}
-
-      {/* Img2Img and Upscaling: Image Upload */}
       {(workflowType === "img2img" || workflowType === "upscaling") && (
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2 text-gray-300">
@@ -265,8 +390,6 @@ export const SettingsPanel: React.FC = () => {
           />
         </div>
       )}
-
-      {/* Upscaling: Creativity Slider */}
       {workflowType === "upscaling" && (
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2 text-gray-300">
@@ -291,11 +414,9 @@ export const SettingsPanel: React.FC = () => {
           </button>
         </div>
       )}
-
-      {/* Common Settings */}
       {workflowType !== "upscaling" && (
         <div>
-          <div>
+          <div className="mb-4">
             <div className="flex justify-between mb-2">
               <label className="text-sm font-medium text-gray-300">
                 CFG Scale
@@ -312,8 +433,7 @@ export const SettingsPanel: React.FC = () => {
               className="w-full slider"
             />
           </div>
-
-          <div>
+          <div className="mb-4">
             <div className="flex justify-between mb-2">
               <label className="text-sm font-medium text-gray-300">Steps</label>
               <span className="text-sm text-gray-400">{steps}</span>
@@ -321,16 +441,14 @@ export const SettingsPanel: React.FC = () => {
             <input
               type="range"
               min="10"
-              defaultValue={20}
-              max="150"
+              max="99"
               step="1"
               value={steps}
               onChange={(e) => setSteps(parseInt(e.target.value))}
               className="w-full slider"
             />
           </div>
-
-          <div>
+          <div className="mb-4">
             <div className="flex justify-between mb-2">
               <label className="text-sm font-medium text-gray-300">
                 Denoising Strength
@@ -347,9 +465,7 @@ export const SettingsPanel: React.FC = () => {
               className="w-full slider"
             />
           </div>
-
-          {/* Toggles */}
-          <div className="flex flex-col space-y-3">
+          <div className="flex flex-col space-y-3 mb-4">
             <label className="flex items-center space-x-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -363,7 +479,6 @@ export const SettingsPanel: React.FC = () => {
                 HighRes Fix
               </span>
             </label>
-
             <label className="flex items-center space-x-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -378,15 +493,123 @@ export const SettingsPanel: React.FC = () => {
               </span>
             </label>
           </div>
-          <button className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-pink-500 via-orange-400 to-teal-400 hover:from-pink-600 hover:via-orange-500 hover:to-teal-500 rounded-lg font-medium text-lg transition-all duration-300 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transform hover:scale-105">
-            Generate Image
+          {highResFix && (
+            <div className="flex flex-col space-y-3 mt-4 mb-4">
+              <div>
+                <div className="flex justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    HighRes Model
+                  </label>
+                  <span className="text-sm text-gray-400">{highResModel}</span>
+                </div>
+                <select
+                  value={highResModel}
+                  onChange={(e) => setHighResModel(e.target.value)}
+                  className="w-full bg-gray-700 rounded-md py-2 px-3 text-sm text-gray-300"
+                >
+                  {highResModels.map((model) => (
+                    <option key={model.model} value={model.model}>
+                      {model.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <div className="flex justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    HighRes Denoising Strength
+                  </label>
+                  <span className="text-sm text-gray-400">
+                    {highResDenoisingStrength}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={highResDenoisingStrength}
+                  onChange={(e) =>
+                    setHighResDenoisingStrength(parseFloat(e.target.value))
+                  }
+                  className="w-full slider"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    HighRes Steps
+                  </label>
+                  <span className="text-sm text-gray-400">{highResSteps}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="99"
+                  step="1"
+                  value={highResSteps}
+                  onChange={(e) => setHighResSteps(parseInt(e.target.value))}
+                  className="w-full slider"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    HighRes Scale
+                  </label>
+                  <span className="text-sm text-gray-400">{highResScale}</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="2"
+                  step="0.1"
+                  value={highResScale}
+                  onChange={(e) => setHighResScale(parseFloat(e.target.value))}
+                  className="w-full slider"
+                />
+              </div>
+            </div>
+          )}
+          <button
+            onClick={handleSubmit}
+            disabled={isGenerating}
+            className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-pink-500 via-orange-400 to-teal-400 hover:from-pink-600 hover:via-orange-500 hover:to-teal-500 rounded-lg font-medium text-lg transition-all duration-300 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transform hover:scale-105"
+          >
+            {isGenerating ? "Generating..." : "Generate Image"}
           </button>
         </div>
       )}
-
-      {/* Global Styles for Slider and Scrollbar */}
+      {isGenerating && (
+        <div className="mt-6 flex flex-col items-center">
+          <Spinner />
+          <p className="mt-2 text-sm text-gray-300">
+            Estimated time left: {estimatedTime} seconds
+          </p>
+          <div className="mt-4 w-full max-h-40 overflow-y-auto text-sm text-gray-200 border p-2 rounded">
+            {logs.map((log, idx) => (
+              <div key={idx}>{log}</div>
+            ))}
+          </div>
+        </div>
+      )}
+      {completedImages.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-xl text-green-500 mb-4">Generated Images</h2>
+          <div className="grid grid-cols-2 gap-4">
+            {completedImages.map((imgPath, idx) => (
+              <div key={idx} className="border rounded p-2">
+                <img
+                  src={imgPath}
+                  alt={`Generated ${idx}`}
+                  className="object-cover rounded"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <style jsx global>{`
-        /* Custom slider styling with gradient from pink-500 to purple-500 */
         .slider {
           -webkit-appearance: none;
           appearance: none;
@@ -415,7 +638,6 @@ export const SettingsPanel: React.FC = () => {
           border: 2px solid transparent;
           cursor: pointer;
         }
-        /* Custom scrollbar styling */
         .custom-scrollbar::-webkit-scrollbar {
           width: 12px;
           height: 12px;

@@ -18,7 +18,9 @@ agent_system_prompt = """You are very creative professional AI image prompt enha
 3. Be creative and artistic but do not change the meaning of the prompt.
 4. Think like an artist, mention art styles, matching colors,perspectives etc.
 5. Try to use eye catching details in the prompt like vibrant colors, fine details, etc.
-6. Don't ask question to proceed further just reply only the enhanced prompt"""
+6. Rephrase the prompt to make it structured and easy to understand.
+7. Arrange the keywords and sentences in a logical and prioritized order.
+8. Don't ask question to proceed further just reply only the enhanced prompt"""
 
 class PromptEnhancer:
     def __init__(self, provider: LLMProvider):
@@ -28,9 +30,9 @@ class PromptEnhancer:
                 result_type=EnhancedPromptType
             )
         elif provider.provider == 'ollama':
-            self.agent = Agent(model= OpenAIModel(model_name='llama3.2', provider=OpenAIProvider(base_url='http://localhost:11434/v1')), result_type=EnhancedPromptType)
+            self.agent = Agent(model= OpenAIModel(model_name='deepseek-r1:7b', provider=OpenAIProvider(base_url='http://localhost:11434/v1')), result_type=EnhancedPromptType)
         elif provider.provider == 'groq':
-            self.agent = Agent()
+            self.agent = Agent("groq:llama-3.3-70b-versatile", system_prompt=agent_system_prompt, result_type=EnhancedPromptType)
         elif provider.provider == 'googleai':
             self.agent = Agent()
         elif provider.provider == 'xai':
@@ -38,8 +40,8 @@ class PromptEnhancer:
         else:
             raise UserError(f"Invalid provider: {provider.provider}")
 
-    async def enhance_prompt(self, prompt) -> EnhancedPromptType:
+    def enhance_prompt(self, prompt) -> EnhancedPromptType:
         try:
-            return self.agent.run(prompt)
+            return self.agent.run_sync(prompt)
         except AgentRunError as e:
             raise UserError(f"Agent run error: {e}")

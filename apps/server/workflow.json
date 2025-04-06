@@ -1,7 +1,7 @@
 {
   "1": {
     "inputs": {
-      "unet_name": "{{Model}}",
+      "unet_name": "Flux/flux1-dev-fp8.safetensors",
       "weight_dtype": "fp8_e4m3fn_fast"
     },
     "class_type": "UNETLoader",
@@ -11,12 +11,12 @@
   },
   "2": {
     "inputs": {
-      "seed": {{Seed}},
-      "steps": {{Steps}},
+      "seed": 3709414960,
+      "steps": 25,
       "cfg": 1,
-      "sampler_name": "{{Sampler}}",
+      "sampler_name": "euler",
       "scheduler": "normal",
-      "denoise": {{DenoisingStrength}},
+      "denoise": 1.0,
       "model": [
         "47",
         0
@@ -78,8 +78,8 @@
   },
   "13": {
     "inputs": {
-      "width": "{{Width}}",
-      "height": "{{Height}}",
+      "width": "1024",
+      "height": "1024",
       "batch_size": 1
     },
     "class_type": "EmptyLatentImage",
@@ -89,12 +89,12 @@
   },
   "16": {
     "inputs": {
-      "seed": {{Seed}},
-      "steps": {{HRSteps}},
+      "seed": 3709414960,
+      "steps": 10,
       "cfg": 1,
       "sampler_name": "euler",
       "scheduler": "normal",
-      "denoise": {{HRDenoisingStrength}},
+      "denoise": 0.3,
       "model": [
         "47",
         0
@@ -206,7 +206,7 @@
   },
   "50": {
     "inputs": {
-      "model_name": "{{HRModel}}"
+      "model_name": "4x_foolhardy_Remacri.pth"
     },
     "class_type": "UpscaleModelLoader",
     "_meta": {
@@ -215,7 +215,7 @@
   },
   "10:0": {
     "inputs": {
-      "text": "{{Prompt}}",
+      "text": "A breathtaking, hyper-detailed fantasy landscape centered around a colossal cherry blossom bonsai tree, its massive gnarled trunk rising like an ancient titan, dwarfing the serene Japanese temple nestled against its roots. The tree’s sprawling branches cascade with delicate pink blossoms, some petals drifting lazily through the air like enchanted snow. A crystal-clear lake mirrors the scene, its surface broken only by a gentle river that winds through the landscape, shimmering with golden light. Sunbeams pierce the canopy in dramatic god rays, illuminating floating pollen and petals, while the warm glow of sunset bathes everything in rich, vibrant hues—deep pinks, golds, and emerald greens. The temple, with its curved roofs and red-lacquered details, sits in harmonious balance with nature, surrounded by moss-covered lanterns and stone pathways. Distant misty mountains fade into the horizon, adding depth and mystery.",
       "clip": [
         "47",
         1
@@ -228,7 +228,7 @@
   },
   "10:1": {
     "inputs": {
-      "guidance": {{CFGScale}},
+      "guidance": 4.0,
       "conditioning": [
         "10:0",
         0
@@ -241,7 +241,7 @@
   },
   "11:0": {
     "inputs": {
-      "text": "{{NegativePrompt}}",
+      "text": "",
       "clip": [
         "47",
         1
@@ -254,7 +254,7 @@
   },
   "11:1": {
     "inputs": {
-      "guidance": {{CFGScale}},
+      "guidance": 4.0,
       "conditioning": [
         "11:0",
         0
