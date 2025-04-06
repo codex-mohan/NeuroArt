@@ -1,4 +1,7 @@
-import re, orjson as json
+import random,re, orjson as json
+
+from models.models import ImageGenerationRequest, UpscaleRequest
+from libs.agents import PromptEnhancer, LLMProvider
 
 sampler_mapping = {
     "Euler": {"sampler": "euler", "scheduler": "karras"},
@@ -34,7 +37,7 @@ resolution_mapping = {
 }
 
 def sanitize_prompts(prompt):
-    sequences = ['"', "'", "\\"]
+    sequences = ["'", "\\"]
 
     for i in sequences:
         prompt = prompt.replace(i, ("\\" + i))
@@ -53,3 +56,34 @@ def replace_placeholder(json_str, replacements: dict):
         json_str = re.sub(pattern, value, json_str)
 
     return json_str
+
+async def build_workflow(request: ImageGenerationRequest | UpscaleRequest):
+    """Builds the workflow from the the received request"""
+    if isinstance(request, ImageGenerationRequest):
+        if request.should_enhance_prompts:
+            prompt_enhancer = PromptEnhancer(provider=LLMProvider(provider='googleai'))
+            enhanced_prompt = await prompt_enhancer.enhance_prompt(request.prompt)
+            request.prompt = enhanced_prompt.prompt
+
+        if request.generation_type == "img2img":
+            init_image = request.init_image
+
+        model = request.model
+        if model is None:
+            model = "flux-dev"
+
+        prompt = sanitize_prompts(request.prompt)
+        negative_prompt = sanitize_prompts(request.negative_prompt)
+
+        if request.seed == -1:
+            # Set the control After Generate to Random
+            seed_control = "randomize"
+            # pick a random seed
+            seed = random.randint(1, 2**63 - 1)
+        else:
+            seed = int(request.seed)
+            seed_control = "fixed"
+
+        cfg_scale 
+
+    

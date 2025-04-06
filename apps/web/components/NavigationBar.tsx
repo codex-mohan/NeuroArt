@@ -1,28 +1,17 @@
 // NavigationBar.tsx
+import Image from "next/image";
 import React from "react";
 import { HelpCircle, Bell } from "lucide-react";
+import logo from "public/logo.svg";
 
 export const NavigationBar = () => {
   return (
     <nav className="relative z-10 px-8 py-4 flex justify-between items-center border-b border-gray-800 bg-gray-900/70 backdrop-blur-md">
       <div className="flex items-center space-x-2">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8 text-gradient bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M21 7v6h-6" />
-          <path d="M3 17h6v-6H3z" />
-          <rect x="3" y="3" width="6" height="6" />
-          <path d="M13 3h8v8h-8z" />
-        </svg>
-        <h1 className="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700">
-          ImaginAI
+        {/* Load svg logo from assets */}
+        <Image src={logo} alt="logo" width={40} height={40} />
+        <h1 className="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 z-10">
+          NeuralArt
         </h1>
       </div>
 
@@ -56,7 +45,7 @@ export const NavigationBar = () => {
           </div>
         </details>
 
-        <button className="p-2 rounded-lg transition-colors duration-300 bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 hover:from-blue-600 hover:via-teal-600 hover:to-green-600">
+        <button className="p-2 rounded-lg transition-colors duration-300 bg-transparent hover:bg-gray-700">
           <Bell className="h-6 w-6 text-white" />
         </button>
 

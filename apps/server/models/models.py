@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 
 class User(BaseModel):
     username: str;
@@ -9,7 +9,7 @@ class User(BaseModel):
 class ImageGenerationRequest:
     model: str = Field(min_length=1, title="Model", description="Model for image generation")
     prompt: str = Field(min_length=1, title="Prompt", description="Prompt for image generation")
-    init_image: Optional[str] = Field(title="Init Image", description="Init Image for image generation in base64", default=None)
+    init_image: Optional[List[str]] = Field(title="Init Image", description="path to the Initial Image for image generation", default=None)
     negative_prompt: str = Field(min_length=1, title="Negative Prompt", description="Negative Prompt for image generation")
     should_enhance_prompts: bool = Field(title="Enhance Prompts", description="Ebable/Disable Enhanced Prompts")
     generation_type: Literal['txt2img', 'img2img'] = Field(title="Generation Type",description="Specify the type of Image generation")

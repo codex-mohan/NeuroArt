@@ -201,6 +201,64 @@ const Home: React.FC = () => {
           }}
         />
       </div>
+      {/* Global Styles for Slider and Scrollbar */}
+      <style jsx global>{`
+        /* Custom slider styling with Tailwind pink-600 to purple-600 */
+        .slider {
+          -webkit-appearance: none;
+          appearance: none;
+          height: 8px;
+          border-radius: 4px;
+          background: linear-gradient(to right, #db2777, #7e22ce);
+          outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: white;
+          border: 2px solid transparent;
+          cursor: pointer;
+          margin-top: -4px;
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+        }
+        .slider::-moz-range-thumb {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: white;
+          border: 2px solid transparent;
+          cursor: pointer;
+        }
+        /* Custom scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 12px;
+          height: 12px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #1f2937;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(45deg, #6366f1, #f472b6);
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-button {
+          background: transparent;
+          width: 12px;
+          height: 12px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-button:vertical:increment {
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpolygon points='0,0 8,0 4,8' fill='%23ffffff'/%3E%3C/svg%3E")
+            center no-repeat;
+        }
+        .custom-scrollbar::-webkit-scrollbar-button:vertical:decrement {
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpolygon points='4,0 0,8 8,8' fill='%23ffffff'/%3E%3C/svg%3E")
+            center no-repeat;
+        }
+      `}</style>
     </div>
   );
 };
