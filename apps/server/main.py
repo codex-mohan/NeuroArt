@@ -1,6 +1,7 @@
 import time, os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from rich import print
@@ -23,12 +24,22 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
 SERVER_URL = os.environ.get("SERVER_URL")
 
+# Allow frontend on port 3001
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001"
+]
+
 app = FastAPI(title="NeuroArt", description="NeuroArt API",version="0.1.0")
 app.include_router(generate_router)
+app.mount("/output", StaticFiles(directory="/home/mohanakrishna/Git/ComfyUI/output"), name="output")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=origins,  # Allows all origins
+    allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
@@ -38,4 +49,4 @@ app.add_middleware(LoggingMiddleware)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run(app, host="127.0.0.1", port=PORT)

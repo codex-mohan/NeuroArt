@@ -30,6 +30,8 @@ interface AppState {
   setHighResScale: (seed: number) => void;
   enhancePrompts: boolean;
   setEnhancePrompts: (enabled: boolean) => void;
+  generatedImages: string[];
+  setGeneratedImages: (image: string) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -60,4 +62,6 @@ export const useStore = create<AppState>((set) => ({
   setHighResScale: (seed) => set({ highResScale: seed }),
   enhancePrompts: false,
   setEnhancePrompts: (enabled) => set({ enhancePrompts: enabled }),
+  generatedImages: [""],
+  setGeneratedImages: (image) => set({ generatedImages: [...image] }),
 }));

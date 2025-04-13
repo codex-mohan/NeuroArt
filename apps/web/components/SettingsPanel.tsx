@@ -128,6 +128,8 @@ export const SettingsPanel: React.FC = () => {
     setHighResScale,
     enhancePrompts,
     setEnhancePrompts,
+    generatedImages,
+    setGeneratedImages,
   } = useStore();
 
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -186,8 +188,8 @@ export const SettingsPanel: React.FC = () => {
         should_enhance_prompts: enhancePrompts,
         generation_type: workflowType, // "text2img" or "img2img"
         hr_model: "4x_foolhardy_Remacri.pth",
-        hr_steps: highResFix ? validHighResSteps : 0,
-        hr_denoising_strength: highResFix ? highResDenoisingStrength : 0.0,
+        hr_steps: highResFix ? validHighResSteps : 1,
+        hr_denoising_strength: highResFix ? highResDenoisingStrength : 0.01,
         hr_scale: highResFix ? highResScale : 1.0,
         sampler: "Euler",
         steps: validSteps,
@@ -211,9 +213,13 @@ export const SettingsPanel: React.FC = () => {
         throw new Error(`Generation failed: ${genResponse.statusText}`);
       }
 
+      console.log("Generation response: ", genResponse);
       const genData = await genResponse.json();
-      const id = genData.id;
+      console.log("Generation data: ", genData);
+
+      const id = genData.data.prompt_id;
       setGenerationId(id);
+      console.log("Generation ID: ", id);
 
       timerRef.current = setInterval(() => {
         setEstimatedTime((prev) => (prev > 0 ? prev - 1 : 0));
@@ -225,12 +231,15 @@ export const SettingsPanel: React.FC = () => {
       eventSource.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
+          console.log("Parsed data: ", parsed);
           if (parsed.status === "completed" && parsed.images) {
             setCompletedImages(parsed.images);
             setLogs((prev) => [
               ...prev,
               "✅ Generation completed successfully!",
             ]);
+            console.log("✅ Generation completed successfully!");
+            setGeneratedImages(parsed.images);
             eventSource.close();
             if (timerRef.current) clearInterval(timerRef.current);
             setIsGenerating(false);
@@ -600,7 +609,7 @@ export const SettingsPanel: React.FC = () => {
             {completedImages.map((imgPath, idx) => (
               <div key={idx} className="border rounded p-2">
                 <img
-                  src={imgPath}
+                  src={"http://localhost:3636/" + imgPath}
                   alt={`Generated ${idx}`}
                   className="object-cover rounded"
                 />

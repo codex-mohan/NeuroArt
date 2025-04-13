@@ -83,8 +83,8 @@ def build_workflow(request: ImageGenerationRequest | UpscaleRequest, **additiona
         if model is None:
             model = "Flux/flux-1-dev-fp8.safetensors"
 
-        prompt = sanitize_prompts(request.prompt)
-        negative_prompt = sanitize_prompts(request.negative_prompt)
+        prompt = request.prompt
+        negative_prompt = request.negative_prompt
 
         if request.seed == -1:
             # Set the control After Generate to Random
