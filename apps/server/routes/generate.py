@@ -83,17 +83,26 @@ async def stream_status(id: str):
 
                 # Check if the generation status is "success"
                 if prompt_data.get("status", {}).get("status_str") == "success":
+                    print("Generation completed successfully.")
                     try:
-                        output_images = prompt_data["outputs"]["24"]["images"]
-                        image_paths = [
+                        image_paths= []
+                        # Get the output images
+                        for node in prompt_data.get("outputs").keys():
+                            print("output node", node, "type:", type(node))
+                            img = prompt_data.get("outputs").get(node, {}).get("images", [])[0]
+                            print("img", img, type(img))
+                            image_paths.append(
                             os.path.join("output", img["subfolder"], img["filename"])
-                            for img in output_images
-                        ]
+                            )
+                            print("image_paths", image_paths)
+
+
                         print("image_paths", image_paths, "status", prompt_data["status"]["status_str"])
                         yield f"data: {json.dumps({'status': 'completed', 'images': image_paths}).decode('utf-8')}\n\n"
                         return
                     except KeyError:
                         yield "data: Error: Output images not found.\n\n"
+                        print("Error: Output images not found.")
                         return
 
                 # If generation is not complete, send a status update and continue polling.

@@ -1,45 +1,5 @@
 {
-  "1": {
-    "inputs": {
-      "unet_name": "Flux/flux1-dev-fp8.safetensors",
-      "weight_dtype": "fp8_e4m3fn_fast"
-    },
-    "class_type": "UNETLoader",
-    "_meta": {
-      "title": "Load Diffusion Model"
-    }
-  },
-  "2": {
-    "inputs": {
-      "seed": 1929294158,
-      "steps": 25,
-      "cfg": 1,
-      "sampler_name": "euler",
-      "scheduler": "normal",
-      "denoise": 1.0,
-      "model": [
-        "47",
-        0
-      ],
-      "positive": [
-        "10:1",
-        0
-      ],
-      "negative": [
-        "11:1",
-        0
-      ],
-      "latent_image": [
-        "13",
-        0
-      ]
-    },
-    "class_type": "KSampler",
-    "_meta": {
-      "title": "KSampler"
-    }
-  },
-  "3": {
+  "37": {
     "inputs": {
       "clip_name1": "clip_l.safetensors",
       "clip_name2": "t5xxl_fp8_e4m3fn.safetensors",
@@ -51,157 +11,148 @@
       "title": "DualCLIPLoader"
     }
   },
-  "4": {
+  "38": {
     "inputs": {
-      "samples": [
-        "2",
+      "text": "A radiant female dancer takes center stage in the grand ceremonial hall of a royal golden palace, captured in a fluid moment of elegant motion. She is the embodiment of grace — with expressive eyes, delicate facial features, and an ethereal presence. Her long, dark hair flows freely as she spins, adorned with gold filigree ornaments and jeweled pins. She wears a flowing silk costume in shades of deep crimson and shimmering gold, intricately embroidered with floral and mythical patterns, catching the light with every movement. Her arms are raised in a poised gesture, fingers curved like a classical sculpture, her feet barely touching the intricately patterned marble floor. The palace hall behind her is a breathtaking marvel of opulence towering golden columns stretch to an arched ceiling painted with celestial murals, and enormous crystal chandeliers cast warm, refracted light across the chamber. Intricate stained glass windows filter the golden sunlight into vivid patterns on the polished floor, softly illuminating the scene. Though richly detailed, the surroundings blur slightly into a dreamlike depth of field, drawing all visual focus toward the dancer as the central subject, closeup visible face",
+      "clip": [
+        "92",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "39": {
+    "inputs": {
+      "model": [
+        "92",
         0
       ],
-      "vae": [
-        "5",
+      "conditioning": [
+        "38",
         0
       ]
     },
-    "class_type": "VAEDecode",
+    "class_type": "BasicGuider",
     "_meta": {
-      "title": "VAE Decode"
+      "title": "BasicGuider"
     }
   },
-  "5": {
+  "40": {
+    "inputs": {
+      "noise": [
+        "44",
+        0
+      ],
+      "guider": [
+        "39",
+        0
+      ],
+      "sampler": [
+        "47",
+        0
+      ],
+      "sigmas": [
+        "46",
+        0
+      ],
+      "latent_image": [
+        "60",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "41": {
+    "inputs": {
+      "guidance": 4.0,
+      "conditioning": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "42": {
+    "inputs": {
+      "unet_name": "Flux/flux1-dev-fp8.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "44": {
+    "inputs": {
+      "noise_seed": 678652677327533
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "45": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "Ksampler"
+    }
+  },
+  "46": {
+    "inputs": {
+      "scheduler": "simple",
+      "steps": 25,
+      "denoise": 1.0,
+      "model": [
+        "92",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "Scheduler First Pass"
+    }
+  },
+  "47": {
+    "inputs": {
+      "detail_amount": 0.5000000000000001,
+      "start": 0.10000000000000002,
+      "end": 0.9000000000000001,
+      "bias": 0.5,
+      "exponent": 1.0000000000000002,
+      "start_offset": 0,
+      "end_offset": 0,
+      "fade": 0,
+      "smooth": true,
+      "cfg_scale_override": 0,
+      "sampler": [
+        "45",
+        0
+      ]
+    },
+    "class_type": "DetailDaemonSamplerNode",
+    "_meta": {
+      "title": "Detail Daemon Sampler"
+    }
+  },
+  "48": {
     "inputs": {
       "vae_name": "ae.sft"
     },
     "class_type": "VAELoader",
     "_meta": {
       "title": "Load VAE"
-    }
-  },
-  "13": {
-    "inputs": {
-      "width": "1216",
-      "height": "832",
-      "batch_size": 1
-    },
-    "class_type": "EmptyLatentImage",
-    "_meta": {
-      "title": "Empty Latent Image"
-    }
-  },
-  "16": {
-    "inputs": {
-      "seed": 1929294158,
-      "steps": 1,
-      "cfg": 1,
-      "sampler_name": "euler",
-      "scheduler": "normal",
-      "denoise": 0.01,
-      "model": [
-        "47",
-        0
-      ],
-      "positive": [
-        "10:1",
-        0
-      ],
-      "negative": [
-        "11:1",
-        0
-      ],
-      "latent_image": [
-        "17",
-        0
-      ]
-    },
-    "class_type": "KSampler",
-    "_meta": {
-      "title": "KSampler"
-    }
-  },
-  "17": {
-    "inputs": {
-      "pixels": [
-        "49",
-        0
-      ],
-      "vae": [
-        "5",
-        0
-      ]
-    },
-    "class_type": "VAEEncode",
-    "_meta": {
-      "title": "VAE Encode"
-    }
-  },
-  "19": {
-    "inputs": {
-      "samples": [
-        "16",
-        0
-      ],
-      "vae": [
-        "5",
-        0
-      ]
-    },
-    "class_type": "VAEDecode",
-    "_meta": {
-      "title": "VAE Decode"
-    }
-  },
-  "24": {
-    "inputs": {
-      "filename_prefix": "Flux/image_",
-      "images": [
-        "19",
-        0
-      ]
-    },
-    "class_type": "SaveImage",
-    "_meta": {
-      "title": "Save Image"
-    }
-  },
-  "47": {
-    "inputs": {
-      "lora_01": "None",
-      "strength_01": 1,
-      "lora_02": "None",
-      "strength_02": 1,
-      "lora_03": "None",
-      "strength_03": 1,
-      "lora_04": "None",
-      "strength_04": 1,
-      "model": [
-        "1",
-        0
-      ],
-      "clip": [
-        "3",
-        0
-      ]
-    },
-    "class_type": "Lora Loader Stack (rgthree)",
-    "_meta": {
-      "title": "Lora Loader Stack (rgthree)"
-    }
-  },
-  "49": {
-    "inputs": {
-      "upscale_method": "bilinear",
-      "factor": 1.0,
-      "upscale_model": [
-        "50",
-        0
-      ],
-      "image": [
-        "4",
-        0
-      ]
-    },
-    "class_type": "Upscale by Factor with Model (WLSH)",
-    "_meta": {
-      "title": "Upscale by Factor with Model (WLSH)"
     }
   },
   "50": {
@@ -213,56 +164,204 @@
       "title": "Load Upscale Model"
     }
   },
-  "10:0": {
+  "51": {
     "inputs": {
-      "text": "Impressionist painting of a French Manor House in Provence, oil on canvas, in the style of Paul Cezanne, European elegance, wide angle view of the landscaping, charming facade with lush vines that climb up the stucco walls, exaggerated brushstrokes, French countryside tones, detailed",
-      "clip": [
-        "47",
-        1
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP Text Encode (Prompt)"
-    }
-  },
-  "10:1": {
-    "inputs": {
-      "guidance": 4.0,
-      "conditioning": [
-        "10:0",
+      "samples": [
+        "40",
+        0
+      ],
+      "vae": [
+        "48",
         0
       ]
     },
-    "class_type": "FluxGuidance",
+    "class_type": "VAEDecode",
     "_meta": {
-      "title": "FluxGuidance"
+      "title": "VAE Decode"
     }
   },
-  "11:0": {
+  "52": {
     "inputs": {
-      "text": "",
-      "clip": [
-        "47",
-        1
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP Text Encode (Prompt)"
-    }
-  },
-  "11:1": {
-    "inputs": {
-      "guidance": 4.0,
-      "conditioning": [
-        "11:0",
+      "scheduler": "simple",
+      "steps": 10,
+      "denoise": 0.3,
+      "model": [
+        "92",
         0
       ]
     },
-    "class_type": "FluxGuidance",
+    "class_type": "BasicScheduler",
     "_meta": {
-      "title": "FluxGuidance"
+      "title": "Scheduler Second Pass"
+    }
+  },
+  "54": {
+    "inputs": {
+      "detail_amount": 0.20000000000000004,
+      "start": 0,
+      "end": 0.9000000000000001,
+      "bias": 0.5,
+      "exponent": 1.0000000000000002,
+      "start_offset": 0,
+      "end_offset": 0,
+      "fade": 0,
+      "smooth": true,
+      "cfg_scale_override": 0,
+      "sampler": [
+        "45",
+        0
+      ]
+    },
+    "class_type": "DetailDaemonSamplerNode",
+    "_meta": {
+      "title": "Detail Daemon Sampler"
+    }
+  },
+  "56": {
+    "inputs": {
+      "filename_prefix": "Flux/image_",
+      "images": [
+        "87",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "60": {
+    "inputs": {
+      "width": 1216,
+      "height": 832,
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "EmptySD3LatentImage"
+    }
+  },
+  "61": {
+    "inputs": {
+      "images": [
+        "51",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "85": {
+    "inputs": {
+      "noise": [
+        "91",
+        0
+      ],
+      "guider": [
+        "39",
+        0
+      ],
+      "sampler": [
+        "54",
+        0
+      ],
+      "sigmas": [
+        "52",
+        0
+      ],
+      "latent_image": [
+        "88",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "86": {
+    "inputs": {
+      "upscale_method": "area",
+      "factor": 1.5,
+      "upscale_model": [
+        "50",
+        0
+      ],
+      "image": [
+        "51",
+        0
+      ]
+    },
+    "class_type": "Upscale by Factor with Model (WLSH)",
+    "_meta": {
+      "title": "Upscale by Factor with Model (WLSH)"
+    }
+  },
+  "87": {
+    "inputs": {
+      "samples": [
+        "85",
+        0
+      ],
+      "vae": [
+        "48",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "88": {
+    "inputs": {
+      "pixels": [
+        "86",
+        0
+      ],
+      "vae": [
+        "48",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "91": {
+    "inputs": {
+      "noise_seed": 2371181931
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "92": {
+    "inputs": {
+      "lora_01": "None",
+      "strength_01": 1,
+      "lora_02": "None",
+      "strength_02": 1,
+      "lora_03": "None",
+      "strength_03": 1,
+      "lora_04": "None",
+      "strength_04": 1,
+      "model": [
+        "42",
+        0
+      ],
+      "clip": [
+        "37",
+        0
+      ]
+    },
+    "class_type": "Lora Loader Stack (rgthree)",
+    "_meta": {
+      "title": "Lora Loader Stack (rgthree)"
     }
   }
 }

@@ -1,0 +1,397 @@
+{
+  "37": {
+    "inputs": {
+      "clip_name1": "clip_l.safetensors",
+      "clip_name2": "t5xxl_fp8_e4m3fn.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "DualCLIPLoader"
+    }
+  },
+  "38": {
+    "inputs": {
+      "text": "{{Prompt}}",
+      "clip": [
+        "92",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "39": {
+    "inputs": {
+      "model": [
+        "92",
+        0
+      ],
+      "conditioning": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "BasicGuider"
+    }
+  },
+  "40": {
+    "inputs": {
+      "noise": [
+        "44",
+        0
+      ],
+      "guider": [
+        "39",
+        0
+      ],
+      "sampler": [
+        "47",
+        0
+      ],
+      "sigmas": [
+        "46",
+        0
+      ],
+      "latent_image": [
+        "95",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "41": {
+    "inputs": {
+      "guidance": {{CFGScale}},
+      "conditioning": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "42": {
+    "inputs": {
+      "unet_name": "Flux/flux1-dev-fp8.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "44": {
+    "inputs": {
+      "noise_seed": 678652677327533
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "45": {
+    "inputs": {
+      "sampler_name": "Sampler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "Ksampler"
+    }
+  },
+  "46": {
+    "inputs": {
+      "scheduler": "simple",
+      "steps": {{Steps}},
+      "denoise": {{DenoisingStrength}},
+      "model": [
+        "92",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "Scheduler First Pass"
+    }
+  },
+  "47": {
+    "inputs": {
+      "detail_amount": 0.5000000000000001,
+      "start": 0.10000000000000002,
+      "end": 0.9000000000000001,
+      "bias": 0.5,
+      "exponent": 1.0000000000000002,
+      "start_offset": 0,
+      "end_offset": 0,
+      "fade": 0,
+      "smooth": true,
+      "cfg_scale_override": 0,
+      "sampler": [
+        "45",
+        0
+      ]
+    },
+    "class_type": "DetailDaemonSamplerNode",
+    "_meta": {
+      "title": "Detail Daemon Sampler"
+    }
+  },
+  "48": {
+    "inputs": {
+      "vae_name": "ae.sft"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "50": {
+    "inputs": {
+      "model_name": "{{HRModel}}"
+    },
+    "class_type": "UpscaleModelLoader",
+    "_meta": {
+      "title": "Load Upscale Model"
+    }
+  },
+  "51": {
+    "inputs": {
+      "samples": [
+        "40",
+        0
+      ],
+      "vae": [
+        "48",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "52": {
+    "inputs": {
+      "scheduler": "simple",
+      "steps": {{HRSteps}},
+      "denoise": {{HRDenoisingStrength}},
+      "model": [
+        "92",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "Scheduler Second Pass"
+    }
+  },
+  "54": {
+    "inputs": {
+      "detail_amount": 0.20000000000000004,
+      "start": 0,
+      "end": 0.9000000000000001,
+      "bias": 0.5,
+      "exponent": 1.0000000000000002,
+      "start_offset": 0,
+      "end_offset": 0,
+      "fade": 0,
+      "smooth": true,
+      "cfg_scale_override": 0,
+      "sampler": [
+        "45",
+        0
+      ]
+    },
+    "class_type": "DetailDaemonSamplerNode",
+    "_meta": {
+      "title": "Detail Daemon Sampler"
+    }
+  },
+  "56": {
+    "inputs": {
+      "filename_prefix": "Flux/image_",
+      "images": [
+        "87",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "61": {
+    "inputs": {
+      "images": [
+        "51",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "85": {
+    "inputs": {
+      "noise": [
+        "91",
+        0
+      ],
+      "guider": [
+        "39",
+        0
+      ],
+      "sampler": [
+        "54",
+        0
+      ],
+      "sigmas": [
+        "52",
+        0
+      ],
+      "latent_image": [
+        "88",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "86": {
+    "inputs": {
+      "upscale_method": "area",
+      "factor": {{HRScale}},
+      "upscale_model": [
+        "50",
+        0
+      ],
+      "image": [
+        "51",
+        0
+      ]
+    },
+    "class_type": "Upscale by Factor with Model (WLSH)",
+    "_meta": {
+      "title": "Upscale by Factor with Model (WLSH)"
+    }
+  },
+  "87": {
+    "inputs": {
+      "samples": [
+        "85",
+        0
+      ],
+      "vae": [
+        "48",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "88": {
+    "inputs": {
+      "pixels": [
+        "86",
+        0
+      ],
+      "vae": [
+        "48",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "91": {
+    "inputs": {
+      "noise_seed": {{Seed}}
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "92": {
+    "inputs": {
+      "lora_01": "None",
+      "strength_01": 1,
+      "lora_02": "None",
+      "strength_02": 1,
+      "lora_03": "None",
+      "strength_03": 1,
+      "lora_04": "None",
+      "strength_04": 1,
+      "model": [
+        "42",
+        0
+      ],
+      "clip": [
+        "37",
+        0
+      ]
+    },
+    "class_type": "Lora Loader Stack (rgthree)",
+    "_meta": {
+      "title": "Lora Loader Stack (rgthree)"
+    }
+  },
+  "94": {
+    "inputs": {
+      "image": "example.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "95": {
+    "inputs": {
+      "pixels": [
+        "96",
+        0
+      ],
+      "vae": [
+        "48",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "96": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "width": 1024,
+      "height": 1024,
+      "crop": "disabled",
+      "image": [
+        "94",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
+    }
+  }
+}
